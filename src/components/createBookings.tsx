@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { collection, doc, query, where, getDocs, addDoc } from "firebase/firestore";
+import { collection, doc, query, where, getDocs, getDoc, addDoc } from "firebase/firestore";
 import { db } from "../config/firebaseConfig";
 
 interface Option {
@@ -19,11 +19,10 @@ const BookingForm: React.FC = () => {
   const [services, setServices] = useState<Option[]>([]);
   const [message, setMessage] = useState<string | null>(null);
 
-  // Carrega as opções de profissionais, usuários e serviços ao montar o componente
+  // Carrega profissionais, usuários e serviços ao montar o componente
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Carrega profissionais
         const professionalsSnapshot = await getDocs(collection(db, "professionals"));
         const professionalsData: Option[] = professionalsSnapshot.docs.map((doc) => ({
           id: doc.id,
@@ -31,7 +30,6 @@ const BookingForm: React.FC = () => {
         }));
         setProfessionals(professionalsData);
 
-        // Carrega usuários
         const usersSnapshot = await getDocs(collection(db, "users"));
         const usersData: Option[] = usersSnapshot.docs.map((doc) => ({
           id: doc.id,
@@ -39,7 +37,6 @@ const BookingForm: React.FC = () => {
         }));
         setUsers(usersData);
 
-        // Carrega serviços
         const servicesSnapshot = await getDocs(collection(db, "services"));
         const servicesData: Option[] = servicesSnapshot.docs.map((doc) => ({
           id: doc.id,
@@ -54,6 +51,27 @@ const BookingForm: React.FC = () => {
     fetchData();
   }, []);
 
+  // Função para verificar a disponibilidade do profissional
+  const checkAvailability = async (professionalId: string, date: string, time: string): Promise<boolean> => {
+    try {
+      const professionalRef = doc(db, "professionals", professionalId);
+      const professionalDoc = await getDoc(professionalRef);
+
+      if (!professionalDoc.exists()) {
+        throw new Error("Profissional não encontrado.");
+      }
+
+      const availability = professionalDoc.data()?.availability || {};
+      const dayOfWeek = new Date(date).toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
+
+      // Verifica se o horário está disponível no dia da semana
+      return availability[dayOfWeek]?.includes(time) || false;
+    } catch (error) {
+      console.error("Erro ao verificar disponibilidade:", error);
+      return false;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -63,6 +81,14 @@ const BookingForm: React.FC = () => {
     }
 
     try {
+      // Verifica disponibilidade
+      const isAvailable = await checkAvailability(professionalId, date, time);
+
+      if (!isAvailable) {
+        setMessage("O profissional não está disponível neste horário.");
+        return;
+      }
+
       // Verifica se o horário já foi reservado
       const professionalRef = doc(db, "professionals", professionalId);
       const userRef = doc(db, "users", userId);
@@ -83,7 +109,7 @@ const BookingForm: React.FC = () => {
         return;
       }
 
-      // Dados do agendamento
+      // Adiciona o agendamento ao Firestore
       const professionalName = professionals.find((p) => p.id === professionalId)?.name || "Desconhecido";
       const userName = users.find((u) => u.id === userId)?.name || "Desconhecido";
       const serviceName = services.find((s) => s.id === serviceId)?.name || "Desconhecido";
