@@ -44,17 +44,41 @@ const UserList: React.FC = () => {
 
   return (
     <div>
-      <h1>Lista de Usuarios</h1>
+
       {users.length > 0 ? (
         <ul>
-          {users.map((user) => (
-            <li key={user.id}>
-              <p><strong>Nome:</strong> {user.name}</p>
-              <p><strong>Email:</strong> {user.email}</p>
-              <p><strong>Cargo:</strong> {user.role}</p>
-
-            </li>
-          ))}
+           <div className="p-6 bg-white rounded shadow">
+           <h2 className="text-xl font-semibold mb-4">Lista de Usuários</h2>
+           <table className="w-full border-collapse">
+             <thead>
+               <tr className="bg-gray-200">
+                 <th className="border px-4 py-2 text-left">ID</th>
+                 <th className="border px-4 py-2 text-left">Name</th>
+                 <th className="border px-4 py-2 text-left">Email</th>
+                 <th className="border px-4 py-2 text-left">Role</th>
+                 <th className="border px-4 py-2 text-left">Actions</th>
+               </tr>
+             </thead>
+             <tbody>
+               {users.map((user) => (
+                 <tr key={user.id}>
+                   <td className="border px-4 py-2">{user.id}</td>
+                   <td className="border px-4 py-2">{user.name}</td>
+                   <td className="border px-4 py-2">{user.email}</td>
+                   <td className="border px-4 py-2">{user.role}</td>
+                   <td className="border px-4 py-2">
+                     <button className="bg-blue-500 text-white px-3 py-1 rounded mr-2 hover:bg-blue-600">
+                       Edit
+                     </button>
+                     <button className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
+                       Delete
+                     </button>
+                   </td>
+                 </tr>
+               ))}
+             </tbody>
+           </table>
+         </div>
         </ul>
       ) : (
         <p>Sem agendamentos disponíveis.</p>
