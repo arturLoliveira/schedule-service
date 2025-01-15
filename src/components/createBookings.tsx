@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { collection, doc, query, where, getDocs, getDoc, addDoc } from "firebase/firestore";
+import { collection, doc, getDocs, getDoc, addDoc, query, where } from "firebase/firestore";
 import { db } from "../config/firebaseConfig";
 
 interface Option {
@@ -17,19 +17,12 @@ const BookingForm: React.FC = () => {
   const [professionals, setProfessionals] = useState<Option[]>([]);
   const [users, setUsers] = useState<Option[]>([]);
   const [services, setServices] = useState<Option[]>([]);
+  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [message, setMessage] = useState<string | null>(null);
 
-  // Carrega profissionais, usuários e serviços ao montar o componente
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const professionalsSnapshot = await getDocs(collection(db, "professionals"));
-        const professionalsData: Option[] = professionalsSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          name: doc.data().name,
-        }));
-        setProfessionals(professionalsData);
-
         const usersSnapshot = await getDocs(collection(db, "users"));
         const usersData: Option[] = usersSnapshot.docs.map((doc) => ({
           id: doc.id,
@@ -51,26 +44,79 @@ const BookingForm: React.FC = () => {
     fetchData();
   }, []);
 
-  // Função para verificar a disponibilidade do profissional
-  const checkAvailability = async (professionalId: string, date: string, time: string): Promise<boolean> => {
-    try {
-      const professionalRef = doc(db, "professionals", professionalId);
-      const professionalDoc = await getDoc(professionalRef);
-
-      if (!professionalDoc.exists()) {
-        throw new Error("Profissional não encontrado.");
+  useEffect(() => {
+    const fetchProfessionalsForService = async () => {
+      if (!serviceId) {
+        setProfessionals([]);
+        return;
       }
 
-      const availability = professionalDoc.data()?.availability || {};
-      const dayOfWeek = new Date(date).toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
+      try {
+        const serviceRef = doc(db, "services", serviceId);
+        const serviceDoc = await getDoc(serviceRef);
 
-      // Verifica se o horário está disponível no dia da semana
-      return availability[dayOfWeek]?.includes(time) || false;
-    } catch (error) {
-      console.error("Erro ao verificar disponibilidade:", error);
-      return false;
-    }
-  };
+        if (!serviceDoc.exists()) {
+          setMessage("Serviço não encontrado.");
+          return;
+        }
+
+        const professionalRefs = serviceDoc.data()?.professionals || [];
+        const professionalPromises = professionalRefs.map((ref: any) => getDoc(ref));
+        const professionalDocs = await Promise.all(professionalPromises);
+
+        const professionalsData: Option[] = professionalDocs
+          .filter((doc) => doc.exists())
+          .map((doc) => ({
+            id: doc.id,
+            name: doc.data()?.name,
+          }));
+
+        setProfessionals(professionalsData);
+      } catch (error) {
+        console.error("Erro ao carregar profissionais para o serviço selecionado:", error);
+        setMessage("Erro ao carregar profissionais.");
+      }
+    };
+
+    fetchProfessionalsForService();
+  }, [serviceId]);
+
+  useEffect(() => {
+    const fetchAvailableTimes = async () => {
+      if (!professionalId || !date) {
+        setAvailableTimes([]);
+        return;
+      }
+
+      try {
+        const professionalRef = doc(db, "professionals", professionalId);
+        const professionalDoc = await getDoc(professionalRef);
+
+        if (!professionalDoc.exists()) {
+          setMessage("Profissional não encontrado.");
+          return;
+        }
+
+        const availability = professionalDoc.data()?.availability || {};
+        const dayOfWeek = new Date(date).toLocaleDateString("en-US", {
+          weekday: "long",
+        }).toLowerCase();
+
+        // Verifica se há horários disponíveis para o dia da semana
+        if (!Array.isArray(availability[dayOfWeek])) {
+          setAvailableTimes([]);
+          return;
+        }
+
+        setAvailableTimes(availability[dayOfWeek]);
+      } catch (error) {
+        console.error("Erro ao carregar horários disponíveis:", error);
+        setMessage("Erro ao carregar horários disponíveis.");
+      }
+    };
+
+    fetchAvailableTimes();
+  }, [professionalId, date]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,27 +127,13 @@ const BookingForm: React.FC = () => {
     }
 
     try {
-      // Verifica disponibilidade
-      const isAvailable = await checkAvailability(professionalId, date, time);
-
-      if (!isAvailable) {
-        setMessage("O profissional não está disponível neste horário.");
-        return;
-      }
-
-      // Verifica se o horário já foi reservado
-      const professionalRef = doc(db, "professionals", professionalId);
-      const userRef = doc(db, "users", userId);
-      const serviceRef = doc(db, "services", serviceId);
-
       const bookingsRef = collection(db, "bookings");
       const q = query(
         bookingsRef,
-        where("professional", "==", professionalRef),
+        where("professional", "==", doc(db, "professionals", professionalId)),
         where("date", "==", date),
         where("time", "==", time)
       );
-
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
@@ -109,28 +141,20 @@ const BookingForm: React.FC = () => {
         return;
       }
 
-      // Adiciona o agendamento ao Firestore
-      const professionalName = professionals.find((p) => p.id === professionalId)?.name || "Desconhecido";
-      const userName = users.find((u) => u.id === userId)?.name || "Desconhecido";
-      const serviceName = services.find((s) => s.id === serviceId)?.name || "Desconhecido";
-
+      const professionalRef = doc(db, "professionals", professionalId);
       const bookingData = {
         date,
         time,
         status,
-        professional: professionalRef,
-        professionalName,
-        user: userRef,
-        userName,
-        service: serviceRef,
-        serviceName,
+        professionalName: professionalRef,
+        userName: doc(db, "users", userId),
+        serviceName: doc(db, "services", serviceId),
       };
 
-      const docRef = await addDoc(collection(db, "bookings"), bookingData);
+      const docRef = await addDoc(bookingsRef, bookingData);
 
       setMessage(`Agendamento criado com sucesso! ID: ${docRef.id}`);
 
-      // Limpa o formulário
       setDate("");
       setTime("");
       setProfessionalId("");
@@ -145,62 +169,24 @@ const BookingForm: React.FC = () => {
 
   return (
     <div>
-      <h1>Criar Agendamento</h1>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="w-full max-w-3xl grid grid-cols-2 gap-6 bg-white p-6 rounded shadow">
         <div>
-          <label>Data:</label>
+          <label className="block text-sm font-medium mb-2">Data:</label>
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
             required
+            className="w-full border border-gray-300 rounded px-3 py-2"
           />
         </div>
         <div>
-          <label>Hora:</label>
-          <input
-            type="time"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Profissional:</label>
-          <select
-            value={professionalId}
-            onChange={(e) => setProfessionalId(e.target.value)}
-            required
-          >
-            <option value="">Selecione um profissional</option>
-            {professionals.map((prof) => (
-              <option key={prof.id} value={prof.id}>
-                {prof.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Usuário:</label>
-          <select
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            required
-          >
-            <option value="">Selecione um usuário</option>
-            {users.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Serviço:</label>
+          <label className="block text-sm font-medium mb-2">Serviço:</label>
           <select
             value={serviceId}
             onChange={(e) => setServiceId(e.target.value)}
             required
+            className="w-full border border-gray-300 rounded px-3 py-2"
           >
             <option value="">Selecione um serviço</option>
             {services.map((service) => (
@@ -211,18 +197,80 @@ const BookingForm: React.FC = () => {
           </select>
         </div>
         <div>
-          <label>Status:</label>
+          <label className="block text-sm font-medium mb-2">Profissional:</label>
+          <select
+            value={professionalId}
+            onChange={(e) => setProfessionalId(e.target.value)}
+            required
+            disabled={!serviceId}
+            className="w-full border border-gray-300 rounded px-3 py-2"
+          >
+            <option value="">Selecione um profissional</option>
+            {professionals.map((prof) => (
+              <option key={prof.id} value={prof.id}>
+                {prof.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-2">Hora:</label>
+          <select
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            required
+            disabled={!availableTimes.length}
+            className="w-full border border-gray-300 rounded px-3 py-2"
+          >
+            <option value="">Selecione um horário</option>
+            {availableTimes.map((availableTime) => (
+              <option key={availableTime} value={availableTime}>
+                {availableTime}
+              </option>
+            ))}
+          </select>
+          {!availableTimes.length && professionalId && date && (
+            <p>Este profissional não possui horários disponíveis nesta data.</p>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-2">Usuário:</label>
+          <select
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+            required
+            className="w-full border border-gray-300 rounded px-3 py-2"
+          >
+            <option value="">Selecione um usuário</option>
+            {users.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-2">Status:</label>
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
             required
+            className="w-full border border-gray-300 rounded px-3 py-2"
           >
             <option value="pending">Pendente</option>
             <option value="confirmed">Confirmado</option>
             <option value="cancelled">Cancelado</option>
           </select>
         </div>
-        <button type="submit">Criar Agendamento</button>
+        <div className="col-span-2 flex justify-center mt-4">
+          <button
+            type="submit"
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+          >
+            Criar Agendamento
+          </button>
+        </div>
       </form>
       {message && <p>{message}</p>}
     </div>

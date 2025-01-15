@@ -56,27 +56,29 @@ const AddProfessionalForm: React.FC = () => {
   return (
     <div>
       <h1>Adicionar Profissional</h1>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="w-full max-w-3xl grid grid-cols-2 gap-6 bg-white p-6 rounded shadow">
         <div>
-          <label>Nome:</label>
+          <label className="block text-sm font-medium mb-2">Nome:</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
+            className="w-full border border-gray-300 rounded px-3 py-2"
           />
         </div>
         <div>
-          <label>Especialização:</label>
+          <label className="block text-sm font-medium mb-2">Especialização:</label>
           <input
             type="text"
             value={specialization}
             onChange={(e) => setSpecialization(e.target.value)}
             required
+            className="w-full border border-gray-300 rounded px-3 py-2"
           />
         </div>
         <div>
-          <h3>Disponibilidade:</h3>
+          <h3 className="block text-sm font-medium mb-2">Disponibilidade:</h3>
           {daysOfWeek.map((day) => (
             <div key={day}>
               <h4>{day.charAt(0).toUpperCase() + day.slice(1)}</h4>
@@ -84,6 +86,7 @@ const AddProfessionalForm: React.FC = () => {
                 <input
                   type="time"
                   onChange={(e) => handleAddTime(day, e.target.value)}
+                  className="w-full border border-gray-300 rounded px-3 py-2"
                 />
                 <button
                   type="button"
@@ -94,7 +97,7 @@ const AddProfessionalForm: React.FC = () => {
               </div>
               <ul>
                 {availability[day]?.map((time) => (
-                  <li key={time}>
+                  <li key={time} >
                     {time}{" "}
                     <button
                       type="button"
@@ -108,7 +111,14 @@ const AddProfessionalForm: React.FC = () => {
             </div>
           ))}
         </div>
-        <button type="submit">Adicionar Profissional</button>
+        <div className="col-span-2 flex justify-center mt-4">
+          <button
+            type="submit"
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+          >
+            Criar Funcionario
+          </button>
+        </div>
       </form>
       {message && <p>{message}</p>}
     </div>

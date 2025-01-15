@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "../config/firebaseConfig";
 
 interface Booking {
@@ -11,6 +11,17 @@ interface Booking {
   serviceName: string | null;
   status: string;
 }
+interface ProfessionalData {
+  name: string;
+}
+
+interface UserData {
+  name: string;
+}
+
+interface ServiceData {
+  name: string;
+}
 
 const BookingsList: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -21,26 +32,62 @@ const BookingsList: React.FC = () => {
     const fetchBookings = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, "bookings"));
-
-        const data = querySnapshot.docs.map((doc) => {
-          const bookingData = doc.data();
-          return {
-            id: doc.id,
-            date: bookingData.date,
-            time: bookingData.time,
-            professionalName: bookingData.professionalName,
-            userName: bookingData.userName,
-            serviceName: bookingData.serviceName,
-            status: bookingData.status,
-          };
-        });
-
+    
+        const data = await Promise.all(
+          querySnapshot.docs.map(async (docSnap) => {
+            const bookingData = docSnap.data();
+        
+            let professionalName = "Desconhecido";
+            let userName = "Desconhecido";
+            let serviceName = "Desconhecido";
+        
+            try {
+              
+              if (bookingData.professionalName && bookingData.professionalName instanceof Object) {
+                const professionalDoc = await getDoc(doc(db, "professionals", bookingData.professionalName.id));
+                if (professionalDoc.exists()) {
+                  const professionalData = professionalDoc.data() as ProfessionalData; 
+                  professionalName = professionalData.name || "Desconhecido";
+                }
+              }
+              if (bookingData.userName && bookingData.userName instanceof Object) {
+                const userDoc = await getDoc(doc(db, "users", bookingData.userName.id));
+                if (userDoc.exists()) {
+                  const userData = userDoc.data() as UserData; 
+                  userName = userData.name || "Desconhecido";
+                }
+              }
+              if (bookingData.serviceName && bookingData.serviceName instanceof Object) {
+                const serviceDoc = await getDoc(doc(db, "services", bookingData.serviceName.id));
+                if (serviceDoc.exists()) {
+                  const serviceData = serviceDoc.data() as ServiceData; 
+                  serviceName = serviceData.name || "Desconhecido";
+                }
+              }
+            } catch (error) {
+              console.error("Erro ao recuperar detalhes do agendamento:", error);
+            }
+        
+            return {
+              id: docSnap.id,
+              date: bookingData.date || "",
+              time: bookingData.time || "",
+              professionalName,
+              userName,
+              serviceName,
+              status: bookingData.status || "Desconhecido",
+            };
+          })
+        );
+        
+    
         setBookings(data);
       } catch (err) {
         console.error("Erro ao buscar agendamentos:", err);
         setError("Erro ao carregar os agendamentos.");
       }
     };
+    
 
     fetchBookings();
   }, []);
@@ -105,7 +152,7 @@ const BookingsList: React.FC = () => {
                     onClick={() => updateBookingStatus(booking.id, "marcado")}
                     className="bg-green-500 text-white px-3 py-1 rounded mr-2 hover:bg-green-600"
                   >
-                  Marcado
+                    Marcado
                   </button>
                   <button
                     onClick={() => updateBookingStatus(booking.id, "cancelado")}

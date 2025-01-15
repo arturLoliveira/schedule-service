@@ -1,12 +1,13 @@
 import React, { useState } from "react";
-import { collection, addDoc } from "firebase/firestore";
-import { db } from "../config/firebaseConfig";
+import { doc, setDoc } from "firebase/firestore";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { db, auth } from "../config/firebaseConfig";
 
 const AddUserForm: React.FC = () => {
   const [email, setEmail] = useState<string>("");
   const [name, setName] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [role, setRole] = useState<string>("user"); 
+  const [role, setRole] = useState<string>("user");
   const [message, setMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,62 +24,87 @@ const AddUserForm: React.FC = () => {
     }
 
     try {
-      const userData = { email, name, password, role };
-      const docRef = await addDoc(collection(db, "users"), userData);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const uid = userCredential.user.uid;
 
-      setMessage(`Usuário adicionado com sucesso! ID: ${docRef.id}`);
+      // Salva os dados adicionais no Firestore
+      await setDoc(doc(db, "users", uid), {
+        email,
+        name,
+        role,
+      });
 
+      setMessage(`Usuário criado com sucesso! ID: ${uid}`);
+
+      // Limpa o formulário
       setEmail("");
       setName("");
       setPassword("");
       setRole("user");
-    } catch (error) {
-      console.error("Erro ao adicionar usuário:", error);
-      setMessage("Erro ao adicionar usuário.");
+    } catch (error: any) {
+      console.error("Erro ao criar usuário:", error);
+      setMessage(`Erro ao criar usuário: ${error.message}`);
     }
   };
 
   return (
     <div>
-      <h1>Adicionar Usuário</h1>
-      <form onSubmit={handleSubmit}>
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-3xl grid grid-cols-2 gap-6 bg-white p-6 rounded shadow"
+      >
         <div>
-          <label>Email:</label>
+          <label className="block text-sm font-medium mb-2">Email:</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            className="w-full border border-gray-300 rounded px-3 py-2"
           />
         </div>
         <div>
-          <label>Nome:</label>
+          <label className="block text-sm font-medium mb-2">Nome:</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
+            className="w-full border border-gray-300 rounded px-3 py-2"
           />
         </div>
         <div>
-          <label>Senha:</label>
+          <label className="block text-sm font-medium mb-2">Senha:</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            className="w-full border border-gray-300 rounded px-3 py-2"
           />
         </div>
         <div>
-          <label>Função:</label>
-          <select value={role} onChange={(e) => setRole(e.target.value)} required>
+          <label className="block text-sm font-medium mb-2">Função:</label>
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            required
+            className="w-full border border-gray-300 rounded px-3 py-2"
+          >
             <option value="user">Usuário</option>
             <option value="admin">Administrador</option>
           </select>
         </div>
-        <button type="submit">Adicionar Usuário</button>
+        <div className="col-span-2 flex justify-center mt-4">
+          <button
+            type="submit"
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+          >
+            Criar Usuário
+          </button>
+        </div>
       </form>
-      {message && <p>{message}</p>}
+      {message && <p className="mt-4 text-center text-red-500">{message}</p>}
     </div>
   );
 };
