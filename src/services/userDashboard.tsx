@@ -1,13 +1,27 @@
 import "../App.css";
 import BookingForm from "../components/createBookings";
-import AddUserForm from "../components/createUser";
+import { CiLogout } from "react-icons/ci";
+import { logout } from "./logout";
+import { useNavigate } from "react-router-dom";
 
 const UserDashboard = () => {
+  const navigate = useNavigate();
+  
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login")
+    
+  };
+  
   return (
     <div className="flex flex-col h-screen">
 
-      <header className="bg-green-500 text-white py-4 text-center text-lg font-bold">
-        User Dashboard
+      <header className="bg-green-500 text-white py-4 text-center text-lg font-bold flex items-center justify-between px-20">
+        <h1>User Dashboard</h1>
+        <div className="flex items-center justify-center gap-3">
+        <CiLogout />
+          <button onClick={handleLogout}>Logout</button>
+        </div>
       </header>
 
       <div className="flex flex-1">
@@ -58,13 +72,6 @@ const UserDashboard = () => {
         </nav>
 
         <main className="flex-1 p-6 bg-gray-100 overflow-y-auto space-y-6">
-          <section
-            id="add-user"
-            className="bg-white rounded shadow p-4 space-y-4"
-          >
-            <h2 className="text-xl font-semibold mb-2">Adicionar Usuário</h2>
-            <AddUserForm />
-          </section>
 
           <section
             id="create-booking"

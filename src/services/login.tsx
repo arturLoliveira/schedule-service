@@ -36,6 +36,9 @@ const LoginForm: React.FC = () => {
       setError("Credenciais inválidas. Tente novamente.");
     }
   };
+  const handleCreateLogin = () => {
+    navigate("/createLogin");
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -78,6 +81,11 @@ const LoginForm: React.FC = () => {
             </button>
           </div>
         </form>
+            <div className="flex flex-col items-center justify-center px-4 py-4 gap-3">
+            <span>Ainda não é cadastrado?</span>
+            <button onClick={handleCreateLogin} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Cadastre-se agora!</button>
+            </div>
+            
       </div>
     </div>
   );

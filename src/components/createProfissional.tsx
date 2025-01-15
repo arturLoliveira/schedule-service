@@ -54,9 +54,9 @@ const AddProfessionalForm: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="flex flex-col items-center justify-center h-screen m-4">
       <h1>Adicionar Profissional</h1>
-      <form onSubmit={handleSubmit} className="w-full max-w-3xl grid grid-cols-2 gap-6 bg-white p-6 rounded shadow">
+      <form onSubmit={handleSubmit} className="w-full max-w-3xl gap-6 bg-white p-6 rounded shadow">
         <div>
           <label className="block text-sm font-medium mb-2">Nome:</label>
           <input
@@ -77,7 +77,7 @@ const AddProfessionalForm: React.FC = () => {
             className="w-full border border-gray-300 rounded px-3 py-2"
           />
         </div>
-        <div>
+        <div className="w-full max-w-3xl grid grid-cols-2 gap-6 p-6">
           <h3 className="block text-sm font-medium mb-2">Disponibilidade:</h3>
           {daysOfWeek.map((day) => (
             <div key={day}>

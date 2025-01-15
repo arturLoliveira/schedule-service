@@ -1,16 +1,32 @@
+import { CiLogout } from "react-icons/ci";
 import "../App.css";
 import BookingsList from "../components/bookings";
 import AddProfessionalForm from "../components/createProfissional";
 import AddServiceForm from "../components/createService";
+import AddUserForm from "../components/createUser";
 import UserList from "../components/getUsers";
+import { useNavigate } from "react-router-dom";
+import { logout } from "./logout";
 
 const AdminDashboard = () => {
   
+  const navigate = useNavigate();
+  
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login")
+    
+  };
+
   return (
     <div className="flex flex-col h-screen">
-      <header className="bg-green-500 text-white py-4 text-center text-lg font-bold">
-        Admin Dashboard
-      </header>
+      <header className="bg-green-500 text-white py-4 text-center text-lg font-bold flex items-center justify-between px-20">
+              <h1>Admin Dashboard</h1>
+              <div className="flex items-center justify-center gap-3">
+              <CiLogout />
+                <button onClick={handleLogout}>Logout</button>
+              </div>
+            </header>
 
       <div className="flex flex-1">
         <nav className="w-64 bg-gray-800 text-white p-4">
@@ -62,8 +78,9 @@ const AdminDashboard = () => {
           <BookingsList />
           </section>
 
-          <section id="services" className="bg-white rounded shadow p-4 mb-6">
+          <section id="services" className="bg-white rounded shadow p-4 mb-6 flex justify-between">
            <AddServiceForm />
+           <AddUserForm />
           </section>
 
           <section id="professionals" className="bg-white rounded shadow p-4">

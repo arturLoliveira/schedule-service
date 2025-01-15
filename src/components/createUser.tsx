@@ -1,7 +1,8 @@
-import React, { useState } from "react";
-import { doc, setDoc } from "firebase/firestore";
+import React, { useEffect, useState } from "react";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { db, auth } from "../config/firebaseConfig";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 const AddUserForm: React.FC = () => {
   const [email, setEmail] = useState<string>("");
@@ -9,6 +10,26 @@ const AddUserForm: React.FC = () => {
   const [password, setPassword] = useState<string>("");
   const [role, setRole] = useState<string>("user");
   const [message, setMessage] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [user] = useAuthState(auth);
+
+  useEffect(() => {
+    const fetchRole = async () => {
+      if (user) {
+        const userRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userRef);
+
+        if (userDoc.exists()) {
+          const userRole = userDoc.data()?.role;
+          if (userRole === "admin") {
+            setIsAdmin(true);
+          }
+        }
+      }
+    };
+    fetchRole();
+  }, [user]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +69,8 @@ const AddUserForm: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="flex flex-col items-center justify-center">
+      <h1>Adicionar Usuario</h1>
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-3xl grid grid-cols-2 gap-6 bg-white p-6 rounded shadow"
@@ -92,7 +114,7 @@ const AddUserForm: React.FC = () => {
             className="w-full border border-gray-300 rounded px-3 py-2"
           >
             <option value="user">Usuário</option>
-            <option value="admin">Administrador</option>
+            {isAdmin && <option value="admin">Administrador</option>}
           </select>
         </div>
         <div className="col-span-2 flex justify-center mt-4">

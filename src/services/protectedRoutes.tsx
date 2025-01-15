@@ -13,32 +13,55 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
   const [user, loading] = useAuthState(auth);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [fetchingRole, setFetchingRole] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUserRole = async () => {
-      if (user) {
-        const userRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(userRef);
-        if (userDoc.exists()) {
-          setUserRole(userDoc.data()?.role || null); // Assumindo que "role" está salvo no Firestore
+      try {
+        if (user) {
+          const userRef = doc(db, "users", user.uid);
+          const userDoc = await getDoc(userRef);
+          if (userDoc.exists()) {
+            setUserRole(userDoc.data()?.role || null); // Assumindo que "role" está salvo no Firestore
+          }
         }
+      } catch (err) {
+        console.error("Erro ao buscar papel do usuário:", err);
+        setError("Erro ao verificar papel do usuário.");
+      } finally {
+        setFetchingRole(false);
       }
-      setFetchingRole(false);
     };
 
     fetchUserRole();
   }, [user]);
 
   if (loading || fetchingRole) {
-    return <p>Carregando...</p>;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-lg font-semibold">Carregando...</p>
+      </div>
+    );
   }
 
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-red-500 font-semibold">{error}</p>
+      </div>
+    );
+  }
+
   if (requiredRole && userRole !== requiredRole) {
-    return <Navigate to="/login" replace />;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-red-500 font-semibold">Acesso negado. Contate o administrador.</p>
+      </div>
+    );
   }
 
   return children;
