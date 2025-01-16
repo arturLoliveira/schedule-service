@@ -21,7 +21,7 @@ const AdminDashboard = () => {
   return (
     <div className="flex flex-col h-screen">
       <header className="bg-green-500 text-white py-4 text-center text-lg font-bold flex items-center justify-between px-20">
-              <h1>Admin Dashboard</h1>
+              <h1>Painel de Administrador</h1>
               <div className="flex items-center justify-center gap-3">
               <CiLogout />
                 <button onClick={handleLogout}>Logout</button>

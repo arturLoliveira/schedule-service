@@ -3,6 +3,8 @@ import BookingForm from "../components/createBookings";
 import { CiLogout } from "react-icons/ci";
 import { logout } from "./logout";
 import { useNavigate } from "react-router-dom";
+import UpdateUserForm from "../components/updateUser";
+import UserBookingsList from "../components/UserBooking";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -17,7 +19,7 @@ const UserDashboard = () => {
     <div className="flex flex-col h-screen">
 
       <header className="bg-green-500 text-white py-4 text-center text-lg font-bold flex items-center justify-between px-20">
-        <h1>User Dashboard</h1>
+        <h1>Painel do Usuario</h1>
         <div className="flex items-center justify-center gap-3">
         <CiLogout />
           <button onClick={handleLogout}>Logout</button>
@@ -85,18 +87,17 @@ const UserDashboard = () => {
             id="services"
             className="bg-white rounded shadow p-4 space-y-4"
           >
-            <h2 className="text-xl font-semibold mb-2">Manage Services</h2>
+            <h2 className="text-xl font-semibold mb-2">Atualizar Senha</h2>
+            <UpdateUserForm />
           </section>
-
           <section
-            id="professionals"
+            id="services"
             className="bg-white rounded shadow p-4 space-y-4"
           >
-            <h2 className="text-xl font-semibold mb-2">Manage Professionals</h2>
-            <button className="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-600 transition">
-              Add Professional
-            </button>
+            <h2 className="text-xl font-semibold mb-2">Meus agendamentos</h2>
+            <UserBookingsList />
           </section>
+
         </main>
       </div>
     </div>

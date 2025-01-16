@@ -55,7 +55,7 @@ const AddProfessionalForm: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen m-4">
-      <h1>Adicionar Profissional</h1>
+      <h1 className="text-xl font-semibold mb-4 my-10">Adicionar Profissional</h1>
       <form onSubmit={handleSubmit} className="w-full max-w-3xl gap-6 bg-white p-6 rounded shadow">
         <div>
           <label className="block text-sm font-medium mb-2">Nome:</label>

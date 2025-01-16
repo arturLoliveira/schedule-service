@@ -3,6 +3,7 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { db, auth } from "../config/firebaseConfig";
 import { useAuthState } from "react-firebase-hooks/auth";
+import { useNavigate } from "react-router-dom";
 
 const AddUserForm: React.FC = () => {
   const [email, setEmail] = useState<string>("");
@@ -12,6 +13,7 @@ const AddUserForm: React.FC = () => {
   const [message, setMessage] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [user] = useAuthState(auth);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchRole = async () => {
@@ -29,6 +31,7 @@ const AddUserForm: React.FC = () => {
     };
     fetchRole();
   }, [user]);
+  
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,11 +60,7 @@ const AddUserForm: React.FC = () => {
 
       setMessage(`Usuário criado com sucesso! ID: ${uid}`);
 
-      // Limpa o formulário
-      setEmail("");
-      setName("");
-      setPassword("");
-      setRole("user");
+      navigate("/login")
     } catch (error: any) {
       console.error("Erro ao criar usuário:", error);
       setMessage(`Erro ao criar usuário: ${error.message}`);
@@ -70,7 +69,7 @@ const AddUserForm: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <h1>Adicionar Usuario</h1>
+      <h1 className="text-xl font-semibold mb-4">Adicionar Usuario</h1>
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-3xl grid grid-cols-2 gap-6 bg-white p-6 rounded shadow"

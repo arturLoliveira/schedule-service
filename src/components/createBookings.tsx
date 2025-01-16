@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { collection, doc, getDocs, getDoc, addDoc, query, where } from "firebase/firestore";
-import { db } from "../config/firebaseConfig";
+import { db, auth } from "../config/firebaseConfig";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 interface Option {
   id: string;
@@ -11,14 +12,16 @@ const BookingForm: React.FC = () => {
   const [date, setDate] = useState<string>("");
   const [time, setTime] = useState<string>("");
   const [professionalId, setProfessionalId] = useState<string>("");
-  const [userId, setUserId] = useState<string>("");
   const [serviceId, setServiceId] = useState<string>("");
-  const [status, setStatus] = useState<string>("pending");
+  const [status, setStatus] = useState<string>("marcado");
   const [professionals, setProfessionals] = useState<Option[]>([]);
+  const [userName, setUsersName] = useState("");
   const [users, setUsers] = useState<Option[]>([]);
+  const [userId, setUserId] = useState<string>("");
   const [services, setServices] = useState<Option[]>([]);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [message, setMessage] = useState<string | null>(null);
+  const [user] = useAuthState(auth);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -117,11 +120,27 @@ const BookingForm: React.FC = () => {
 
     fetchAvailableTimes();
   }, [professionalId, date]);
+  useEffect(() => {
+      const fetchUser = async () => {
+        if (user) {
+          const userRef = doc(db, "users", user.uid);
+          const userDoc = await getDoc(userRef);
+  
+          if (userDoc.exists()) {
+            const user = userDoc.data()?.name;
+            const usersId = userDoc.id
+            setUsersName(user);
+            setUserId(usersId)
+          }
+        }
+      };
+      fetchUser();
+    }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!date || !time || !professionalId || !userId || !serviceId || !status) {
+    if (!date || !time || !professionalId || !serviceId || !status) {
       setMessage("Todos os campos são obrigatórios.");
       return;
     }
@@ -147,7 +166,8 @@ const BookingForm: React.FC = () => {
         time,
         status,
         professionalName: professionalRef,
-        userName: doc(db, "users", userId),
+        userName: userName,
+        userRef: userId,
         serviceName: doc(db, "services", serviceId),
       };
 
@@ -158,9 +178,8 @@ const BookingForm: React.FC = () => {
       setDate("");
       setTime("");
       setProfessionalId("");
-      setUserId("");
       setServiceId("");
-      setStatus("pending");
+      setStatus("marcado");
     } catch (error) {
       console.error("Erro ao criar agendamento:", error);
       setMessage("Erro ao criar agendamento.");
@@ -233,35 +252,23 @@ const BookingForm: React.FC = () => {
             <p>Este profissional não possui horários disponíveis nesta data.</p>
           )}
         </div>
-
         <div>
-          <label className="block text-sm font-medium mb-2">Usuário:</label>
-          <select
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            required
+        <label className="block text-sm font-medium mb-2">Usuario:</label>
+          <input
+            type="text"
+            value={userName}
+            readOnly
             className="w-full border border-gray-300 rounded px-3 py-2"
-          >
-            <option value="">Selecione um usuário</option>
-            {users.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.name}
-              </option>
-            ))}
-          </select>
+          />
         </div>
         <div>
           <label className="block text-sm font-medium mb-2">Status:</label>
-          <select
+         <input
+            type="text"
             value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            required
+            readOnly
             className="w-full border border-gray-300 rounded px-3 py-2"
-          >
-            <option value="pending">Pendente</option>
-            <option value="confirmed">Confirmado</option>
-            <option value="cancelled">Cancelado</option>
-          </select>
+          />
         </div>
         <div className="col-span-2 flex justify-center mt-4">
           <button

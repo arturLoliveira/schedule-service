@@ -73,7 +73,7 @@ const AddServiceForm: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <h1>Adicionar Serviço</h1>
+      <h1 className="text-xl font-semibold mb-4">Adicionar Serviço</h1>
       <form onSubmit={handleSubmit} className="w-full max-w-3xl grid grid-cols-2 gap-6 bg-white p-6 rounded shadow">
         <div>
           <label className="block text-sm font-medium mb-2">Descrição:</label>

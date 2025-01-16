@@ -66,10 +66,10 @@ const UserList: React.FC = () => {
               <thead>
                 <tr className="bg-gray-200">
                   <th className="border px-4 py-2 text-left">ID</th>
-                  <th className="border px-4 py-2 text-left">Name</th>
+                  <th className="border px-4 py-2 text-left">Nome</th>
                   <th className="border px-4 py-2 text-left">Email</th>
-                  <th className="border px-4 py-2 text-left">Role</th>
-                  <th className="border px-4 py-2 text-left">Actions</th>
+                  <th className="border px-4 py-2 text-left">Função</th>
+                  <th className="border px-4 py-2 text-left">Gerenciar</th>
                 </tr>
               </thead>
               <tbody>

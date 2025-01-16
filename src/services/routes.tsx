@@ -9,10 +9,8 @@ import AddUserForm from "../components/createUser";
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      {/* Página de Login */}
       <Route path="/login" element={<LoginForm />} />
 
-      {/* Rotas Protegidas */}
       <Route
         path="/admin"
         element={
@@ -36,7 +34,6 @@ const AppRoutes: React.FC = () => {
         }
       />
 
-      {/* Redirecionamento padrão */}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );

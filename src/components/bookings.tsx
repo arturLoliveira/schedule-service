@@ -14,15 +14,9 @@ interface Booking {
 interface ProfessionalData {
   name: string;
 }
-
-interface UserData {
-  name: string;
-}
-
 interface ServiceData {
   name: string;
 }
-
 const BookingsList: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -36,25 +30,15 @@ const BookingsList: React.FC = () => {
         const data = await Promise.all(
           querySnapshot.docs.map(async (docSnap) => {
             const bookingData = docSnap.data();
-        
             let professionalName = "Desconhecido";
-            let userName = "Desconhecido";
             let serviceName = "Desconhecido";
         
             try {
-              
               if (bookingData.professionalName && bookingData.professionalName instanceof Object) {
                 const professionalDoc = await getDoc(doc(db, "professionals", bookingData.professionalName.id));
                 if (professionalDoc.exists()) {
                   const professionalData = professionalDoc.data() as ProfessionalData; 
                   professionalName = professionalData.name || "Desconhecido";
-                }
-              }
-              if (bookingData.userName && bookingData.userName instanceof Object) {
-                const userDoc = await getDoc(doc(db, "users", bookingData.userName.id));
-                if (userDoc.exists()) {
-                  const userData = userDoc.data() as UserData; 
-                  userName = userData.name || "Desconhecido";
                 }
               }
               if (bookingData.serviceName && bookingData.serviceName instanceof Object) {
@@ -73,7 +57,7 @@ const BookingsList: React.FC = () => {
               date: bookingData.date || "",
               time: bookingData.time || "",
               professionalName,
-              userName,
+              userName: bookingData.userName,
               serviceName,
               status: bookingData.status || "Desconhecido",
             };
@@ -99,7 +83,6 @@ const BookingsList: React.FC = () => {
         setMessage("Status inválido. Use 'marcado' ou 'cancelado'.");
         return;
       }
-
       const bookingRef = doc(db, "bookings", bookingId);
       await updateDoc(bookingRef, { status });
 
@@ -114,26 +97,24 @@ const BookingsList: React.FC = () => {
       setMessage("Erro ao atualizar status da reserva.");
     }
   };
-
   if (error) {
     return <p>{error}</p>;
   }
-
   return (
     <section id="bookings" className="bg-white rounded shadow p-4 mb-6">
-      <h2 className="text-xl font-semibold mb-4">Manage Bookings</h2>
+      <h2 className="text-xl font-semibold mb-4">Gerenciar agendamentos</h2>
       {message && <p className="text-green-500 mb-4">{message}</p>}
       <table className="w-full border-collapse">
         <thead>
           <tr className="bg-gray-200">
             <th className="border px-4 py-2 text-left">ID</th>
-            <th className="border px-4 py-2 text-left">Date</th>
-            <th className="border px-4 py-2 text-left">Time</th>
-            <th className="border px-4 py-2 text-left">User</th>
+            <th className="border px-4 py-2 text-left">Data</th>
+            <th className="border px-4 py-2 text-left">Horario</th>
+            <th className="border px-4 py-2 text-left">Cliente</th>
             <th className="border px-4 py-2 text-left">Status</th>
-            <th className="border px-4 py-2 text-left">Professional</th>
-            <th className="border px-4 py-2 text-left">Service</th>
-            <th className="border px-4 py-2 text-left">Actions</th>
+            <th className="border px-4 py-2 text-left">Funcionario</th>
+            <th className="border px-4 py-2 text-left">Serviço</th>
+            <th className="border px-4 py-2 text-left">Gerenciar</th>
           </tr>
         </thead>
         {bookings.length > 0 ? (
@@ -147,7 +128,7 @@ const BookingsList: React.FC = () => {
                 <td className="border px-4 py-2">{booking.status}</td>
                 <td className="border px-4 py-2">{booking.professionalName}</td>
                 <td className="border px-4 py-2">{booking.serviceName}</td>
-                <td className="border px-4 py-2">
+                <td className="border px-4 py-2 flex justify-between">
                   <button
                     onClick={() => updateBookingStatus(booking.id, "marcado")}
                     className="bg-green-500 text-white px-3 py-1 rounded mr-2 hover:bg-green-600"
