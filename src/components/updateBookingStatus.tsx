@@ -22,10 +22,9 @@ const UpdateBookingStatusForm: React.FC = () => {
     }
 
     try {
-      // Referência do documento da reserva
+
       const bookingRef = doc(db, "bookings", bookingId);
 
-      // Atualiza o status da reserva
       await updateDoc(bookingRef, { status });
 
       setMessage(`Reserva atualizada para '${status}' com sucesso!`);

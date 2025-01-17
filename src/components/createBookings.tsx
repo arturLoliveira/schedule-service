@@ -12,27 +12,22 @@ const BookingForm: React.FC = () => {
   const [date, setDate] = useState<string>("");
   const [time, setTime] = useState<string>("");
   const [professionalId, setProfessionalId] = useState<string>("");
+  const [professionalName, setProfessionalName] = useState<string>("");
   const [serviceId, setServiceId] = useState<string>("");
+  const [userId, setUserId] = useState<string>("");
+  const [userName, setUsersName] = useState("");
+  const [serviceName, setServiceName] = useState<string>("");
+  const [servicePrice, setServicePrice] = useState<string>("");
   const [status, setStatus] = useState<string>("marcado");
   const [professionals, setProfessionals] = useState<Option[]>([]);
-  const [userName, setUsersName] = useState("");
-  const [users, setUsers] = useState<Option[]>([]);
-  const [userId, setUserId] = useState<string>("");
   const [services, setServices] = useState<Option[]>([]);
-  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [availableTimes, setAvailableTimes] = useState<{ time: string; disabled: boolean }[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [user] = useAuthState(auth);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const usersSnapshot = await getDocs(collection(db, "users"));
-        const usersData: Option[] = usersSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          name: doc.data().name,
-        }));
-        setUsers(usersData);
-
         const servicesSnapshot = await getDocs(collection(db, "services"));
         const servicesData: Option[] = servicesSnapshot.docs.map((doc) => ({
           id: doc.id,
@@ -40,7 +35,7 @@ const BookingForm: React.FC = () => {
         }));
         setServices(servicesData);
       } catch (error) {
-        console.error("Erro ao carregar dados:", error);
+        console.error("Erro ao carregar serviços:", error);
       }
     };
 
@@ -63,11 +58,16 @@ const BookingForm: React.FC = () => {
           return;
         }
 
-        const professionalRefs = serviceDoc.data()?.professionals || [];
+        setServiceName(serviceDoc.data()?.name || "");
+        setServicePrice(serviceDoc.data()?.price || "0.00");
+
+        const professionalRefs = Array.isArray(serviceDoc.data()?.professionals)
+          ? serviceDoc.data()?.professionals
+          : [];
         const professionalPromises = professionalRefs.map((ref: any) => getDoc(ref));
         const professionalDocs = await Promise.all(professionalPromises);
 
-        const professionalsData: Option[] = professionalDocs
+        const professionalsData = professionalDocs
           .filter((doc) => doc.exists())
           .map((doc) => ({
             id: doc.id,
@@ -76,7 +76,7 @@ const BookingForm: React.FC = () => {
 
         setProfessionals(professionalsData);
       } catch (error) {
-        console.error("Erro ao carregar profissionais para o serviço selecionado:", error);
+        console.error("Erro ao carregar profissionais:", error);
         setMessage("Erro ao carregar profissionais.");
       }
     };
@@ -105,13 +105,29 @@ const BookingForm: React.FC = () => {
           weekday: "long",
         }).toLowerCase();
 
-        // Verifica se há horários disponíveis para o dia da semana
         if (!Array.isArray(availability[dayOfWeek])) {
           setAvailableTimes([]);
           return;
         }
 
-        setAvailableTimes(availability[dayOfWeek]);
+        const times = availability[dayOfWeek];
+
+        const bookingsRef = collection(db, "bookings");
+        const q = query(
+          bookingsRef,
+          where("professionalName", "==", professionalRef),
+          where("date", "==", date)
+        );
+        const querySnapshot = await getDocs(q);
+
+        const bookedTimes = querySnapshot.docs.map((doc) => doc.data()?.time);
+
+        const updatedTimes = times.map((time: string) => ({
+          time,
+          disabled: bookedTimes.includes(time),
+        }));
+
+        setAvailableTimes(updatedTimes);
       } catch (error) {
         console.error("Erro ao carregar horários disponíveis:", error);
         setMessage("Erro ao carregar horários disponíveis.");
@@ -120,23 +136,32 @@ const BookingForm: React.FC = () => {
 
     fetchAvailableTimes();
   }, [professionalId, date]);
-  useEffect(() => {
-      const fetchUser = async () => {
-        if (user) {
-          const userRef = doc(db, "users", user.uid);
-          const userDoc = await getDoc(userRef);
-  
-          if (userDoc.exists()) {
-            const user = userDoc.data()?.name;
-            const usersId = userDoc.id
-            setUsersName(user);
-            setUserId(usersId)
-          }
-        }
-      };
-      fetchUser();
-    }, [user]);
 
+  useEffect(() => {
+    const updateProfessionalName = () => {
+      const selectedProfessional = professionals.find((prof) => prof.id === professionalId);
+      setProfessionalName(selectedProfessional?.name || "");
+    };
+
+    updateProfessionalName();
+  }, [professionalId, professionals]);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (user) {
+        const userRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userRef);
+
+        if (userDoc.exists()) {
+          const user = userDoc.data()?.name;
+          const usersId = userDoc.id
+          setUsersName(user);
+          setUserId(usersId)
+        }
+      }
+    };
+    fetchUser();
+  }, [user]);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -147,20 +172,25 @@ const BookingForm: React.FC = () => {
 
     try {
       const bookingsRef = collection(db, "bookings");
+      const professionalRef = doc(db, "professionals", professionalId);
+
       const q = query(
         bookingsRef,
-        where("professional", "==", doc(db, "professionals", professionalId)),
+        where("professionalName", "==", professionalRef),
         where("date", "==", date),
         where("time", "==", time)
       );
       const querySnapshot = await getDocs(q);
 
-      if (!querySnapshot.empty) {
-        setMessage("Horário já foi agendado.");
+      const conflictingBooking = querySnapshot.docs.find(
+        (doc) => doc.data()?.status === "confirmado"
+      );
+
+      if (conflictingBooking) {
+        setMessage("Este horário já está reservado por outro agendamento confirmado.");
         return;
       }
 
-      const professionalRef = doc(db, "professionals", professionalId);
       const bookingData = {
         date,
         time,
@@ -172,7 +202,6 @@ const BookingForm: React.FC = () => {
       };
 
       const docRef = await addDoc(bookingsRef, bookingData);
-
       setMessage(`Agendamento criado com sucesso! ID: ${docRef.id}`);
 
       setDate("");
@@ -187,24 +216,25 @@ const BookingForm: React.FC = () => {
   };
 
   return (
-    <div>
-      <form onSubmit={handleSubmit} className="w-full max-w-3xl grid grid-cols-2 gap-6 bg-white p-6 rounded shadow">
+    <form onSubmit={handleSubmit}>
+      <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6 space-y-6">
+        <h2 className="text-xl font-bold text-gray-800">Fazer uma reserva</h2>
+
         <div>
-          <label className="block text-sm font-medium mb-2">Data:</label>
+          <h3 className="text-lg font-semibold">Selecione a Data</h3>
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            required
             className="w-full border border-gray-300 rounded px-3 py-2"
           />
         </div>
+
         <div>
-          <label className="block text-sm font-medium mb-2">Serviço:</label>
+          <h3 className="text-lg font-semibold">Serviço</h3>
           <select
             value={serviceId}
             onChange={(e) => setServiceId(e.target.value)}
-            required
             className="w-full border border-gray-300 rounded px-3 py-2"
           >
             <option value="">Selecione um serviço</option>
@@ -215,12 +245,12 @@ const BookingForm: React.FC = () => {
             ))}
           </select>
         </div>
+
         <div>
           <label className="block text-sm font-medium mb-2">Profissional:</label>
           <select
             value={professionalId}
             onChange={(e) => setProfessionalId(e.target.value)}
-            required
             disabled={!serviceId}
             className="w-full border border-gray-300 rounded px-3 py-2"
           >
@@ -232,55 +262,54 @@ const BookingForm: React.FC = () => {
             ))}
           </select>
         </div>
+
         <div>
-          <label className="block text-sm font-medium mb-2">Hora:</label>
-          <select
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            required
-            disabled={!availableTimes.length}
-            className="w-full border border-gray-300 rounded px-3 py-2"
-          >
-            <option value="">Selecione um horário</option>
-            {availableTimes.map((availableTime) => (
-              <option key={availableTime} value={availableTime}>
+          <h3 className="text-lg font-semibold">Horários</h3>
+          <div className="flex flex-wrap gap-2">
+            {availableTimes.map(({ time: availableTime, disabled }) => (
+              <button
+                key={availableTime}
+                className={`px-4 py-2 rounded transition ${disabled
+                    ? "bg-gray-300 cursor-not-allowed"
+                    : time === availableTime
+                      ? "bg-teal-700 text-white"
+                      : "bg-teal-500 text-white hover:bg-teal-600"
+                  }`}
+                disabled={disabled}
+                onClick={() => setTime(availableTime)}
+              >
                 {availableTime}
-              </option>
+              </button>
             ))}
-          </select>
-          {!availableTimes.length && professionalId && date && (
-            <p>Este profissional não possui horários disponíveis nesta data.</p>
-          )}
+          </div>
         </div>
-        <div>
-        <label className="block text-sm font-medium mb-2">Usuario:</label>
-          <input
-            type="text"
-            value={userName}
-            readOnly
-            className="w-full border border-gray-300 rounded px-3 py-2"
-          />
+
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold">Resumo</h3>
+          <div className="flex justify-between">
+            <span className="text-gray-700">Serviço:</span>
+            <span className="text-gray-800 font-bold">{serviceName}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-700">Profissional:</span>
+            <span className="text-gray-800 font-bold">{professionalName}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-700">Preço:</span>
+            <span className="text-gray-800 font-bold">R$ {servicePrice}</span>
+          </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium mb-2">Status:</label>
-         <input
-            type="text"
-            value={status}
-            readOnly
-            className="w-full border border-gray-300 rounded px-3 py-2"
-          />
-        </div>
-        <div className="col-span-2 flex justify-center mt-4">
-          <button
-            type="submit"
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-          >
-            Criar Agendamento
-          </button>
-        </div>
-      </form>
-      {message && <p>{message}</p>}
-    </div>
+
+        <button
+          type="submit"
+          className="w-full bg-teal-500 text-white py-2 rounded hover:bg-teal-600"
+        >
+          Agendar
+        </button>
+
+        {message && <p className="text-center text-teal-500 mt-4">{message}</p>}
+      </div>
+    </form>
   );
 };
 

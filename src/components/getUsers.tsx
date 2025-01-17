@@ -55,54 +55,77 @@ const UserList: React.FC = () => {
   };
 
   return (
-    <div>
-
+    <div className="max-w-5xl mx-auto">
       {users.length > 0 ? (
-        <ul>
-          <div className="p-6 bg-white rounded shadow">
-            <h2 className="text-xl font-semibold mb-4">Lista de Usuários</h2>
-            {message && <p className="text-green-500 mb-4">{message}</p>}
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-gray-200">
-                  <th className="border px-4 py-2 text-left">ID</th>
-                  <th className="border px-4 py-2 text-left">Nome</th>
-                  <th className="border px-4 py-2 text-left">Email</th>
-                  <th className="border px-4 py-2 text-left">Função</th>
-                  <th className="border px-4 py-2 text-left">Gerenciar</th>
+        <div className="p-6 bg-white rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">Lista de Usuários</h2>
+          {message && (
+            <p
+              className={`mb-4 px-4 py-2 rounded ${
+                message.includes("sucesso")
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700"
+              }`}
+            >
+              {message}
+            </p>
+          )}
+          <table className="min-w-full border border-gray-300 rounded overflow-hidden">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="text-left px-6 py-3 text-sm font-bold text-gray-700 uppercase tracking-wider">
+                  ID
+                </th>
+                <th className="text-left px-6 py-3 text-sm font-bold text-gray-700 uppercase tracking-wider">
+                  Nome
+                </th>
+                <th className="text-left px-6 py-3 text-sm font-bold text-gray-700 uppercase tracking-wider">
+                  Email
+                </th>
+                <th className="text-left px-6 py-3 text-sm font-bold text-gray-700 uppercase tracking-wider">
+                  Função
+                </th>
+                <th className="text-center px-6 py-3 text-sm font-bold text-gray-700 uppercase tracking-wider">
+                  Gerenciar
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {users.map((user) => (
+                <tr key={user.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    {user.id}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    {user.name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    {user.email}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    {user.role}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <button
+                      className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition"
+                      onClick={() => deleteUser(user.id)}
+                    >
+                      Delete
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {users.map((user) => (
-                  <tr key={user.id}>
-                    <td className="border px-4 py-2">{user.id}</td>
-                    <td className="border px-4 py-2">{user.name}</td>
-                    <td className="border px-4 py-2">{user.email}</td>
-                    <td className="border px-4 py-2">{user.role}</td>
-                    <td className="border px-4 py-2">
-                      <button className="bg-blue-500 text-white px-3 py-1 rounded mr-2 hover:bg-blue-600">
-                        Edit
-                      </button>
-                      <button
-                        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                        onClick={() => deleteUser(user.id)}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </ul>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : (
-        <section id="services" className="bg-white rounded shadow p-4 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Não há usuarios cadastrados</h2>
-        </section>
+        <div className="p-6 bg-white rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold text-gray-800">Não há usuários cadastrados</h2>
+        </div>
       )}
     </div>
   );
+  
 };
 
 export default UserList;

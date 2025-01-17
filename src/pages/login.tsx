@@ -75,7 +75,7 @@ const LoginForm: React.FC = () => {
           <div className="flex items-center justify-center">
             <button
               type="submit"
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              className="bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
             >
               Entrar
             </button>
@@ -83,7 +83,7 @@ const LoginForm: React.FC = () => {
         </form>
             <div className="flex flex-col items-center justify-center px-4 py-4 gap-3">
             <span>Ainda não é cadastrado?</span>
-            <button onClick={handleCreateLogin} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Cadastre-se agora!</button>
+            <button onClick={handleCreateLogin} className="bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Cadastre-se agora!</button>
             </div>
             
       </div>

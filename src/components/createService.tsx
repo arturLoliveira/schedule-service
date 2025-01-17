@@ -72,47 +72,47 @@ const AddServiceForm: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center">
-      <h1 className="text-xl font-semibold mb-4">Adicionar Serviço</h1>
-      <form onSubmit={handleSubmit} className="w-full max-w-3xl grid grid-cols-2 gap-6 bg-white p-6 rounded shadow">
+    <div className="max-w-4xl mx-auto mt-8 bg-white p-6 rounded-lg shadow-md space-y-6">
+      <h1 className="text-2xl font-bold text-gray-800 mb-4">Adicionar Serviço</h1>
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium mb-2">Descrição:</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Descrição:</label>
           <input
             type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-2">Nome:</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Nome:</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-2">Preço:</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Preço:</label>
           <input
             type="number"
+            min="0"
             value={price}
             onChange={(e) => setPrice(Number(e.target.value))}
             required
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
           />
         </div>
-        
         <div>
-          <label className="block text-sm font-medium mb-2">Profissional:</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Profissional:</label>
           <select
             value={professionalId}
             onChange={(e) => setProfessionalId(e.target.value)}
             required
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
           >
             <option value="">Selecione um profissional</option>
             {professionals.map((prof) => (
@@ -122,18 +122,19 @@ const AddServiceForm: React.FC = () => {
             ))}
           </select>
         </div>
-        <div className="col-span-2 flex justify-center mt-4">
+        <div className="col-span-full flex justify-center mt-4">
           <button
             type="submit"
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+            className="bg-teal-500 text-white px-6 py-2 rounded-md shadow hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500"
           >
             Criar Serviço
           </button>
         </div>
       </form>
-      {message && <p>{message}</p>}
+      {message && <p className="text-center text-teal-600 font-medium">{message}</p>}
     </div>
   );
+  
 };
 
 export default AddServiceForm;

@@ -8,14 +8,21 @@ const AddProfessionalForm: React.FC = () => {
   const [name, setName] = useState<string>("");
   const [specialization, setSpecialization] = useState<string>("");
   const [availability, setAvailability] = useState<Record<string, string[]>>({});
+  const [selectedTimes, setSelectedTimes] = useState<Record<string, string>>({});
   const [message, setMessage] = useState<string | null>(null);
 
-  const handleAddTime = (day: string, time: string) => {
-    if (!time) return;
-
+  const handleAddTime = (day: string) => {
+    const time = selectedTimes[day];
+    if (!time) return; 
     setAvailability((prev) => ({
       ...prev,
-      [day]: prev[day] ? [...new Set([...prev[day], time])] : [time], 
+      [day]: prev[day] ? [...new Set([...prev[day], time])] : [time],
+    }));
+
+   
+    setSelectedTimes((prev) => ({
+      ...prev,
+      [day]: "",
     }));
   };
 
@@ -54,75 +61,93 @@ const AddProfessionalForm: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen m-4">
-      <h1 className="text-xl font-semibold mb-4 my-10">Adicionar Profissional</h1>
-      <form onSubmit={handleSubmit} className="w-full max-w-3xl gap-6 bg-white p-6 rounded shadow">
+    <div className="max-w-4xl mx-auto mt-10 bg-white p-8 rounded-lg shadow-md space-y-6">
+      <h1 className="text-2xl font-bold text-gray-800 text-center">Adicionar Profissional</h1>
+  
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium mb-2">Nome:</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Nome:</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
           />
         </div>
+  
         <div>
-          <label className="block text-sm font-medium mb-2">Especialização:</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Especialização:</label>
           <input
             type="text"
             value={specialization}
             onChange={(e) => setSpecialization(e.target.value)}
             required
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
           />
         </div>
-        <div className="w-full max-w-3xl grid grid-cols-2 gap-6 p-6">
-          <h3 className="block text-sm font-medium mb-2">Disponibilidade:</h3>
-          {daysOfWeek.map((day) => (
-            <div key={day}>
-              <h4>{day.charAt(0).toUpperCase() + day.slice(1)}</h4>
-              <div>
-                <input
-                  type="time"
-                  onChange={(e) => handleAddTime(day, e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleAddTime(day, e.target.previousElementSibling?.value || "")}
-                >
-                  Adicionar
-                </button>
+
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-800">Disponibilidade</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {daysOfWeek.map((day) => (
+              <div key={day} className="bg-gray-50 p-4 rounded-lg shadow-sm">
+                <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                  {day.charAt(0).toUpperCase() + day.slice(1)}
+                </h4>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="time"
+                    value={selectedTimes[day] || ""}
+                    onChange={(e) =>
+                      setSelectedTimes((prev) => ({
+                        ...prev,
+                        [day]: e.target.value,
+                      }))
+                    }
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleAddTime(day)}
+                    className="bg-teal-500 text-white px-3 py-2 rounded shadow hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  >
+                    Adicionar
+                  </button>
+                </div>
+                <ul className="mt-2 space-y-1">
+                  {availability[day]?.map((time) => (
+                    <li key={time} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-700">{time}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveTime(day, time)}
+                        className="text-red-500 hover:underline"
+                      >
+                        Remover
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <ul>
-                {availability[day]?.map((time) => (
-                  <li key={time} >
-                    {time}{" "}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveTime(day, time)}
-                    >
-                      Remover
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-        <div className="col-span-2 flex justify-center mt-4">
+  
+        <div className="flex justify-center mt-6">
           <button
             type="submit"
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+            className="bg-teal-500 text-white px-6 py-2 rounded-md shadow hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500"
           >
-            Criar Funcionario
+            Criar Profissional
           </button>
         </div>
       </form>
-      {message && <p>{message}</p>}
+  
+      {message && <p className="text-center text-teal-600 font-medium mt-4">{message}</p>}
     </div>
   );
+  
 };
 
 export default AddProfessionalForm;

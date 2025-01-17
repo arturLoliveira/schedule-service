@@ -22,7 +22,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
           const userRef = doc(db, "users", user.uid);
           const userDoc = await getDoc(userRef);
           if (userDoc.exists()) {
-            setUserRole(userDoc.data()?.role || null); // Assumindo que "role" está salvo no Firestore
+            setUserRole(userDoc.data()?.role || null); 
           }
         }
       } catch (err) {

@@ -1,8 +1,8 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import AdminDashboard from "../services/adminPage";
-import LoginForm from "../services/login";
-import UserDashboard from "../services/userDashboard";
+import AdminDashboard from "../pages/adminPage";
+import LoginForm from "../pages/login";
+import UserDashboard from "../pages/userDashboard";
 import ProtectedRoute from "../services/protectedRoutes";
 import AddUserForm from "../components/createUser";
 

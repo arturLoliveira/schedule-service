@@ -26,28 +26,41 @@ const UpdateUserForm: React.FC = () => {
     }
   };
 
-  return (
-    <div>
-      <form onSubmit={handleSubmit} className="w-full max-w-3xl grid grid-cols-2 gap-6 bg-white p-6 rounded shadow">
+   return (
+    <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">Atualizar Senha</h2>
+      {message && (
+        <div
+          className={`mb-4 p-3 rounded ${
+            message.includes("sucesso")
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-700"
+          }`}
+        >
+          {message}
+        </div>
+      )}
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-2">Senha:</label>
-          <input 
-            type="password" 
-            onChange={(e) => setPassword(e.target.value)} 
-            value={password} 
-            className="w-full border border-gray-300 rounded px-3 py-2"
-        />
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            Nova Senha:
+          </label>
+          <input
+            type="password"
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Digite sua nova senha"
+            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-teal-500 focus:border-teal-500"
+          />
         </div>
-        <div className="col-span-2 mt-4">
-          <button
-            type="submit"
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-          >
-            Atualizar Senha
-          </button>
-        </div>
+        <button
+          type="submit"
+          className="w-full bg-teal-500 text-white py-2 px-4 rounded hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500"
+        >
+          Atualizar Senha
+        </button>
       </form>
-      {message && <p className="text-green-500 mb-4">{message}</p>}
     </div>
   );
 };
