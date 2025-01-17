@@ -5,6 +5,8 @@ import LoginForm from "../pages/login";
 import UserDashboard from "../pages/userDashboard";
 import ProtectedRoute from "../services/protectedRoutes";
 import AddUserForm from "../components/createUser";
+import UpdateUserForm from "../components/updateUser";
+import PasswordReset from "./updatePassword";
 
 const AppRoutes: React.FC = () => {
   return (
@@ -31,6 +33,12 @@ const AppRoutes: React.FC = () => {
         path="/createLogin"
         element={
             <AddUserForm />
+        }
+      />
+      <Route
+        path="/updatePassword"
+        element={
+            <PasswordReset />
         }
       />
 

@@ -39,6 +39,9 @@ const LoginForm: React.FC = () => {
   const handleCreateLogin = () => {
     navigate("/createLogin");
   }
+  const HandleUpdatePassword = () => {
+    navigate("/updatePassword")
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -70,6 +73,9 @@ const LoginForm: React.FC = () => {
               required
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             />
+            <button type="button" onClick={HandleUpdatePassword} className="block text-red-700 text-xs font-bold mb-2 mt-2" >
+              Esqueci minha senha
+            </button>
           </div>
           {error && <p className="text-red-500 text-xs italic mb-4">{error}</p>}
           <div className="flex items-center justify-center">
@@ -82,7 +88,7 @@ const LoginForm: React.FC = () => {
           </div>
         </form>
             <div className="flex flex-col items-center justify-center px-4 py-4 gap-3">
-            <span>Ainda não é cadastrado?</span>
+            <span className="block text-gray-700 text-sm font-bold mb-2 mt-2">Ainda não é cadastrado?</span>
             <button onClick={handleCreateLogin} className="bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Cadastre-se agora!</button>
             </div>
             
