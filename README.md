@@ -7,6 +7,12 @@
 <h1> Telas </h1>
 <img src="https://github.com/arturLoliveira/schedule-service/blob/main/login.png" alt="Texto Alternativo" />
 <img src="https://github.com/arturLoliveira/schedule-service/blob/main/painel%20usuario.png" alt="Texto Alternativo" />
+<img src="https://github.com/arturLoliveira/schedule-service/blob/main/painel%20usuario%202.png" alt="Texto Alternativo" />
+<img src="https://github.com/arturLoliveira/schedule-service/blob/main/painel%20usuraio%203.png" alt="Texto Alternativo" />
+<img src="https://github.com/arturLoliveira/schedule-service/blob/main/painel%20admin.png" alt="Texto Alternativo" />
+<img src="https://github.com/arturLoliveira/schedule-service/blob/main/painel%20admin%202.png" alt="Texto Alternativo" />
+<img src="https://github.com/arturLoliveira/schedule-service/blob/main/painel%20admin3.png" alt="Texto Alternativo" />
+
 
 
 <h2>1. Tema</h2>
